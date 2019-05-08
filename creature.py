@@ -1,22 +1,33 @@
 import pygame
+import math
+import body_part
 
 vec = pygame.math.Vector2
 
 
 class Creature:
 
-    def __init__(self, pos, size):
+    def __init__(self, pos, size, genes):
+
         self.size = size
         self.health = 0
         self.energy = 0
-        self.foodCollected = 0
+        self.food_collected = 0
         self.img = None
         self.vel = vec(0, 0)
         self.acceleration = vec(0, -0.2)
         self.angle_speed = 0
         self.angle = 0  # TODO: point to center of screen
-        self.position = vec(pos[0], pos[1])
+        self.position = vec(pos[0], pos[1])     # TODO: Always start right next to edge
         self.home = False
+        self.parts = []
+        self.genes = genes
+        self.setup_parts()
+
+    def setup_parts(self):
+        # TODO: use the genome to determine this
+        mouth = body_part.BodyPart(0, self.size / 1.5, self.size, self)
+        self.parts.append(mouth)
 
     def friction(self):
         self.vel.x = self.vel.x - (self.vel.x / 30)
@@ -35,6 +46,21 @@ class Creature:
             if self.position.y + self.size >= y >= self.position.y - self.size:
                 return True
         return False
+
+    def mouth_collision(self, x, y):
+        return self.parts[0].check_collision(x, y)
+
+    def body_part_collision(self, x, y):
+        for part in self.parts:
+            if part.check_collision(x, y):
+                return True
+        return False
+
+    def front_pos(self):
+        fpx = self.position.x + (self.size * math.sin(math.radians(self.angle)))
+        fpy = self.position.y - (self.size * math.cos(math.radians(self.angle)))
+
+        return fpx, fpy
 
     def move(self):
         # moves creature
@@ -80,11 +106,11 @@ class Creature:
             return False
 
     def got_home(self):
+        self.front_pos()
         self.vel = vec(0, 0)
         self.home = True
-        # if self.foodCollected == 0:
+        # if self.food_collected == 0:
         #     # die
         # else:
         #     # reproduction
-        pass
 

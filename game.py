@@ -7,6 +7,7 @@ import random
 class Game:
 
     def __init__(self):
+
         self.width = 1200
         self.height = 750
         self.win = pygame.display.set_mode((self.width, self.height))
@@ -17,12 +18,15 @@ class Game:
         self.create_food()
 
     def run(self):
+
         run = True
 
         clock = pygame.time.Clock()
 
         while run:
+
             clock.tick(60)
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
@@ -30,7 +34,7 @@ class Game:
                 pos = pygame.mouse.get_pos()
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    c = creature.Creature(pos, 15)
+                    c = creature.Creature(pos, 15, None)
                     self.creatures.append(c)
 
             for c in self.creatures:
@@ -41,15 +45,26 @@ class Game:
         pygame.quit()
 
     def draw(self):
+
         self.win.blit(self.bg, (0, 0))
+
         for c in self.creatures:
             c.friction()
-            pygame.draw.circle(self.win, (255, 0, 0), (int(getattr(c, "position").x), int(getattr(c, "position").y)), 15, 0)
+
+            pygame.draw.circle(self.win, (255, 0, 0), (int(getattr(c, "position").x),
+                                                       int(getattr(c, "position").y)), 15, 0)
+            fpx = c.front_pos()[0]
+            fpy = c.front_pos()[1]
+            pygame.draw.circle(self.win, (0, 0, 0), (int(fpx), int(fpy)), 2, 0)
+
             for f in self.food_items:
-                if c.collide(f[0], f[1]):
+                if c.mouth_collision(f[0], f[1]):
+                    setattr(c, "food_collected", getattr(c, "food_collected") + 1)
                     self.food_items.remove(f)
+
         for f in self.food_items:
             pygame.draw.circle(self.win, (0, 255, 0), (f[0], f[1]), 5, 0)
+
         pygame.display.update()
 
     def create_food(self):
