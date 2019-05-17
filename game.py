@@ -32,9 +32,21 @@ class Game:
                     run = False
 
                 pos = pygame.mouse.get_pos()
+                # r = random.randint(1, 3896)
+                pos = (600, 749)
+                r2 = random.randint(5, 25)
+
+                # if r <= 1199:
+                #     pos = (r, 0)
+                # elif r <= 1949:
+                #     pos = (1199, r - 1199)
+                # elif r <= 1949:
+                #     pos = (r - 2149, 749)
+                # else:
+                #     pos = (0, r - 3899)
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    c = creature.Creature(pos, 15, None)
+                    c = creature.Creature(pos, r2, None)
                     self.creatures.append(c)
 
             for c in self.creatures:
@@ -48,22 +60,50 @@ class Game:
 
         self.win.blit(self.bg, (0, 0))
 
+        mouths = []
+        damage_parts = []
+
+        to_remove_creatures = []
+
         for c in self.creatures:
-            c.friction()
+            if not getattr(c, "home"):
+                mouths.append(getattr(c, "parts")[0])
+                damage_parts = damage_parts + (getattr(c, "parts"))     # TODO: differentiate between kinds of parts
 
-            pygame.draw.circle(self.win, (255, 0, 0), (int(getattr(c, "position").x),
-                                                       int(getattr(c, "position").y)), 15, 0)
-            fpx = c.front_pos()[0]
-            fpy = c.front_pos()[1]
-            pygame.draw.circle(self.win, (0, 0, 0), (int(fpx), int(fpy)), 2, 0)
+        for c in self.creatures:
+            for d in damage_parts:
+                if (not c == getattr(d, "owner"))\
+                        and (not getattr(c, "home"))\
+                        and c.collide(d.true_position()[0], d.true_position()[1]):
 
-            for f in self.food_items:
-                if c.mouth_collision(f[0], f[1]):
-                    setattr(c, "food_collected", getattr(c, "food_collected") + 1)
-                    self.food_items.remove(f)
+                    if getattr(c, "health") > 0:
+                        setattr(c, "health", getattr(c, "health") - 1)
+                        # TODO: visual indication of hit and bounce off
+
+            if getattr(c, "health") <= 0:
+                to_remove_creatures.append(c)
+                for i in range(max(1, int(c.size / 3))):
+                    r = random.randint(0, 25)
+                    r2 = random.randint(0, 25)
+                    self.food_items.append((int(getattr(c, "position")[0] + r - 12.5),
+                                            int(getattr(c, "position")[1] + r2 - 12.5)))
+
+            if not to_remove_creatures.__contains__(c):
+                c.draw(self.win)
+
+        self.creatures = [i for i in self.creatures if i not in to_remove_creatures]
+
+        to_remove_food = []
 
         for f in self.food_items:
-            pygame.draw.circle(self.win, (0, 255, 0), (f[0], f[1]), 5, 0)
+            for mouth in mouths:
+                if mouth.check_collision(f[0], f[1]):
+                    to_remove_food.append(f)
+
+                else:
+                    pygame.draw.circle(self.win, (0, 255, 0), (f[0], f[1]), 5, 0)
+
+        self.food_items = [i for i in self.food_items if i not in to_remove_food]
 
         pygame.display.update()
 

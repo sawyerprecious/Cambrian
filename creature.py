@@ -9,35 +9,46 @@ class Creature:
 
     def __init__(self, pos, size, genes):
 
-        self.size = size
-        self.health = 0
-        self.energy = 0
+        self.genes = genes
+        self.size = size    # TODO: remove size from init, based on genes
+        self.health = 3 * self.size
+        self.energy = 15000
         self.food_collected = 0
-        self.img = None
+        self.img = None     # TODO: some basic image for all creatures
         self.vel = vec(0, 0)
-        self.acceleration = vec(0, -0.2)
+        self.acceleration = vec(0, -0.2 + ((self.size - 15) / 100))
         self.angle_speed = 0
         self.angle = 0  # TODO: point to center of screen
         self.position = vec(pos[0], pos[1])     # TODO: Always start right next to edge
         self.home = False
         self.parts = []
-        self.genes = genes
         self.setup_parts()
 
     def setup_parts(self):
         # TODO: use the genome to determine this
-        mouth = body_part.BodyPart(0, self.size / 1.5, self.size, self)
+        mouth = body_part.BodyPart(0, self.size / 1.5, self.size, self, "mouth")
         self.parts.append(mouth)
 
+        spike = body_part.BodyPart(40, self.size / 3, self.size + 5, self, "spike")
+        spike2 = body_part.BodyPart(320, self.size / 3, self.size + 5, self, "spike")
+        self.parts.append(spike)
+        self.parts.append(spike2)
+
     def friction(self):
+        # TODO: based on size
         self.vel.x = self.vel.x - (self.vel.x / 30)
         self.vel.y = self.vel.y - (self.vel.y / 30)
 
     def draw(self, win):
         # draws creature
-        # win.blit(self.img, (self.x, self.y))
-        # pygame.draw.circle(win, (0, 0, 255), (int(self.position.x), int(self.position.y)), 5, 0)
-        # pygame.display.update()
+
+        self.friction()
+
+        pygame.draw.circle(win, (255, 0, 0), (int(self.position.x), int(self.position.y)), self.size, 0)
+
+        for part in self.parts:
+            part.draw(win)
+
         self.move()
 
     def collide(self, x, y):
@@ -46,9 +57,6 @@ class Creature:
             if self.position.y + self.size >= y >= self.position.y - self.size:
                 return True
         return False
-
-    def mouth_collision(self, x, y):
-        return self.parts[0].check_collision(x, y)
 
     def body_part_collision(self, x, y):
         for part in self.parts:
@@ -68,19 +76,26 @@ class Creature:
         if not self.home:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT]:
+                self.energy -= self.size  # TODO: based on size and other factors
                 self.angle_speed = -4
                 self.rotate()
             if keys[pygame.K_RIGHT]:
+                self.energy -= self.size  # TODO: based on size and other factors
                 self.angle_speed = 4
                 self.rotate()
             # If up or down is pressed, accelerate by
             # adding the acceleration to the velocity vector.
             if keys[pygame.K_UP]:
+                self.energy -= self.size  # TODO: based on size and other factors
                 self.vel += self.acceleration
             if keys[pygame.K_DOWN]:
+                self.energy -= self.size  # TODO: based on size and other factors
                 self.vel -= self.acceleration
 
             self.position += self.vel
+
+            if self.energy <= 0:
+                self.health = 0
 
             if self.position.x < 0 or self.position.x > 1200 or self.position.y < 0 or self.position.y > 750:
                 self.position.x = max(self.position.x, 0)
@@ -90,7 +105,7 @@ class Creature:
                 self.got_home()
 
     def rotate(self):
-        # Rotate the acceleration vector.
+        # Rotate the acceleration vector
         self.acceleration.rotate_ip(self.angle_speed)
         self.angle += self.angle_speed
         if self.angle > 360:
