@@ -2,6 +2,7 @@ import pygame
 import os
 import creature
 import random
+import math
 
 
 class Game:
@@ -31,21 +32,20 @@ class Game:
                 if event.type == pygame.QUIT:
                     run = False
 
-                pos = pygame.mouse.get_pos()
-                # r = random.randint(1, 3896)
-                pos = (600, 749)
-                r2 = random.randint(5, 25)
-
-                # if r <= 1199:
-                #     pos = (r, 0)
-                # elif r <= 1949:
-                #     pos = (1199, r - 1199)
-                # elif r <= 1949:
-                #     pos = (r - 2149, 749)
-                # else:
-                #     pos = (0, r - 3899)
-
                 if event.type == pygame.MOUSEBUTTONDOWN:
+                    # pos = pygame.mouse.get_pos()
+                    r = random.randint(0, 3895)
+                    r2 = random.randint(5, 25)
+
+                    if r <= 1198:
+                        pos = (r + 1, 0)
+                    elif r <= 1947:
+                        pos = (1199, r - 1198)
+                    elif r <= 3146:
+                        pos = (r - 1947, 749)
+                    elif r < 3896:
+                        pos = (0, r - 3146)
+
                     c = creature.Creature(pos, r2, None)
                     self.creatures.append(c)
 
@@ -78,7 +78,12 @@ class Game:
 
                     if getattr(c, "health") > 0:
                         setattr(c, "health", getattr(c, "health") - 1)
-                        # TODO: visual indication of hit and bounce off
+                        setattr(c, "dmg", True)
+                        ang = math.atan2(getattr(c, "position")[1] - d.true_position()[1],
+                                         getattr(c, "position")[0] - d.true_position()[0])
+                        ang_vec = (math.cos(ang) * max(0.5, getattr(d, "owner").vel[0]),
+                                   -math.sin(ang) * max(0.5, getattr(d, "owner").vel[1]))
+                        setattr(c, "vel", getattr(c, "vel") + ang_vec)
 
             if getattr(c, "health") <= 0:
                 to_remove_creatures.append(c)
@@ -90,6 +95,7 @@ class Game:
 
             if not to_remove_creatures.__contains__(c):
                 c.draw(self.win)
+                setattr(c, "dmg", False)
 
         self.creatures = [i for i in self.creatures if i not in to_remove_creatures]
 

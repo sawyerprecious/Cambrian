@@ -11,16 +11,21 @@ class Creature:
 
         self.genes = genes
         self.size = size    # TODO: remove size from init, based on genes
-        self.health = 3 * self.size
+        self.health = 2 * self.size
         self.energy = 15000
         self.food_collected = 0
-        self.img = None     # TODO: some basic image for all creatures
+        self.dmg = False
+
         self.vel = vec(0, 0)
         self.acceleration = vec(0, -0.2 + ((self.size - 15) / 100))
+        self.position = vec(pos[0], pos[1])
         self.angle_speed = 0
-        self.angle = 0  # TODO: point to center of screen
-        self.position = vec(pos[0], pos[1])     # TODO: Always start right next to edge
+        self.angle = self.set_angle()
+        self.acceleration.rotate_ip(self.angle)
+
+        self.img = None     # TODO: some basic image for all creatures
         self.home = False
+
         self.parts = []
         self.setup_parts()
 
@@ -34,17 +39,20 @@ class Creature:
         self.parts.append(spike)
         self.parts.append(spike2)
 
+    def set_angle(self):
+        centre = (600, 325)
+        return math.degrees(math.atan2(self.position[1] - centre[1], self.position[0] - centre[0])) - 90
+
     def friction(self):
-        # TODO: based on size
-        self.vel.x = self.vel.x - (self.vel.x / 30)
-        self.vel.y = self.vel.y - (self.vel.y / 30)
+        self.vel.x = self.vel.x - (self.vel.x / (self.size * 2))
+        self.vel.y = self.vel.y - (self.vel.y / (self.size * 2))
 
     def draw(self, win):
         # draws creature
 
         self.friction()
 
-        pygame.draw.circle(win, (255, 0, 0), (int(self.position.x), int(self.position.y)), self.size, 0)
+        pygame.draw.circle(win, (255, 255, 255) if self.dmg is False else (255, 0, 0), (int(self.position.x), int(self.position.y)), self.size, 0)
 
         for part in self.parts:
             part.draw(win)
