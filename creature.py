@@ -1,6 +1,7 @@
 import pygame
 import math
 import body_part
+import os
 
 vec = pygame.math.Vector2
 
@@ -23,7 +24,8 @@ class Creature:
         self.angle = self.set_angle()
         self.acceleration.rotate_ip(self.angle)
 
-        self.img = None     # TODO: some basic image for all creatures
+        self.img = pygame.image.load(os.path.join("assets", "gradient.png"))
+        self.img = pygame.transform.scale(self.img, (self.size * 2 + 1, self.size * 2 + 1))
         self.home = False
 
         self.parts = []
@@ -34,8 +36,8 @@ class Creature:
         mouth = body_part.BodyPart(0, self.size / 1.5, self.size, self, "mouth")
         self.parts.append(mouth)
 
-        spike = body_part.BodyPart(40, self.size / 3, self.size + 5, self, "spike")
-        spike2 = body_part.BodyPart(320, self.size / 3, self.size + 5, self, "spike")
+        spike = body_part.BodyPart(40, self.size / 2, self.size + 10, self, "spike")
+        spike2 = body_part.BodyPart(320, self.size / 2, self.size + 10, self, "spike")
         self.parts.append(spike)
         self.parts.append(spike2)
 
@@ -44,15 +46,17 @@ class Creature:
         return math.degrees(math.atan2(self.position[1] - centre[1], self.position[0] - centre[0])) - 90
 
     def friction(self):
-        self.vel.x = self.vel.x - (self.vel.x / (self.size * 2))
-        self.vel.y = self.vel.y - (self.vel.y / (self.size * 2))
+        self.vel.x = self.vel.x - (self.vel.x / (10 + self.size / 2))
+        self.vel.y = self.vel.y - (self.vel.y / (10 + self.size / 2))
 
     def draw(self, win):
         # draws creature
 
         self.friction()
 
-        pygame.draw.circle(win, (255, 255, 255) if self.dmg is False else (255, 0, 0), (int(self.position.x), int(self.position.y)), self.size, 0)
+        pygame.draw.circle(win, (33, 220, 105) if self.dmg is False else (255, 0, 0),
+                           (int(self.position.x), int(self.position.y)), self.size, 0)
+        win.blit(self.img, (int(self.position.x - self.size - 1), int(self.position.y - self.size - 1)))
 
         for part in self.parts:
             part.draw(win)
@@ -87,10 +91,12 @@ class Creature:
                 self.energy -= self.size  # TODO: based on size and other factors
                 self.angle_speed = -4
                 self.rotate()
+                self.rotate_parts()
             if keys[pygame.K_RIGHT]:
                 self.energy -= self.size  # TODO: based on size and other factors
                 self.angle_speed = 4
                 self.rotate()
+                self.rotate_parts()
             # If up or down is pressed, accelerate by
             # adding the acceleration to the velocity vector.
             if keys[pygame.K_UP]:
@@ -111,6 +117,10 @@ class Creature:
                 self.position.x = min(self.position.x, 1200)
                 self.position.y = min(self.position.y, 750)
                 self.got_home()
+
+    def rotate_parts(self):
+        for part in self.parts:
+            part.determine_rotation()
 
     def rotate(self):
         # Rotate the acceleration vector

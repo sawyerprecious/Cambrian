@@ -14,6 +14,7 @@ class Game:
         self.win = pygame.display.set_mode((self.width, self.height))
         self.creatures = []
         self.food_items = []
+        self.bubbles = []
         self.bg = pygame.image.load(os.path.join("assets", "background.png"))
         self.bg = pygame.transform.scale(self.bg, (self.width, self.height))
         self.create_food()
@@ -33,7 +34,6 @@ class Game:
                     run = False
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    # pos = pygame.mouse.get_pos()
                     r = random.randint(0, 3895)
                     r2 = random.randint(5, 25)
 
@@ -60,6 +60,21 @@ class Game:
 
         self.win.blit(self.bg, (0, 0))
 
+        to_remove_bubbles = []
+
+        bub = pygame.image.load(os.path.join("assets", "bubble.png"))
+        bub.convert()
+
+        for b in self.bubbles:
+            r = random.randint(0, 5)
+            if r == 0:
+                to_remove_bubbles.append(b)
+
+            else:
+                self.win.blit(bub, (b[0], b[1]))
+
+        self.bubbles = [i for i in self.bubbles if i not in to_remove_bubbles]
+
         mouths = []
         damage_parts = []
 
@@ -74,7 +89,7 @@ class Game:
             for d in damage_parts:
                 if (not c == getattr(d, "owner"))\
                         and (not getattr(c, "home"))\
-                        and c.collide(d.true_position()[0], d.true_position()[1]):
+                        and c.collide(d.true_position_dmg()[0], d.true_position_dmg()[1]):
 
                     if getattr(c, "health") > 0:
                         setattr(c, "health", getattr(c, "health") - 1)
@@ -84,6 +99,13 @@ class Game:
                         ang_vec = (math.cos(ang) * max(0.5, getattr(d, "owner").vel[0]),
                                    -math.sin(ang) * max(0.5, getattr(d, "owner").vel[1]))
                         setattr(c, "vel", getattr(c, "vel") + ang_vec)
+
+            if not getattr(c, "home"):
+                for i in range(max(1, int(c.size / 3))):
+                    r = random.randint(0, c.size)
+                    r2 = random.randint(0, c.size)
+                    self.bubbles.append((int(getattr(c, "position")[0] + r - c.size / 2),
+                                         int(getattr(c, "position")[1] + r2 - c.size / 2)))
 
             if getattr(c, "health") <= 0:
                 to_remove_creatures.append(c)
