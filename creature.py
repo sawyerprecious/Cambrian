@@ -29,6 +29,8 @@ class Creature:
         self.home = False
 
         self.parts = []
+        self.animated_parts = []
+        self.dmg_parts = []
         self.setup_parts()
 
     def setup_parts(self):
@@ -36,10 +38,22 @@ class Creature:
         mouth = body_part.BodyPart(0, self.size / 1.5, self.size, self, "mouth")
         self.parts.append(mouth)
 
-        spike = body_part.BodyPart(40, self.size / 2, self.size + 10, self, "spike")
-        spike2 = body_part.BodyPart(320, self.size / 2, self.size + 10, self, "spike")
+        spike = body_part.BodyPart(40, self.size / 2, self.size * 1.5, self, "spike")
+        spike2 = body_part.BodyPart(320, self.size / 2, self.size * 1.5, self, "spike")
         self.parts.append(spike)
         self.parts.append(spike2)
+
+        eye = body_part.BodyPart(0, 0, self.size / 3, self, "eye")
+        self.parts.append(eye)
+
+        flag = body_part.BodyPart(180, 0, self.size * 2, self, "flagella")
+        self.parts.append(flag)
+
+        for part in self.parts:
+            if part.type is "spike" or part.type is "mouth":
+                self.dmg_parts.append(part)
+            elif part.type is "flagella":
+                self.animated_parts.append(part)
 
     def set_angle(self):
         centre = (600, 325)
@@ -70,12 +84,6 @@ class Creature:
                 return True
         return False
 
-    def body_part_collision(self, x, y):
-        for part in self.parts:
-            if part.check_collision(x, y):
-                return True
-        return False
-
     def front_pos(self):
         fpx = self.position.x + (self.size * math.sin(math.radians(self.angle)))
         fpy = self.position.y - (self.size * math.cos(math.radians(self.angle)))
@@ -87,24 +95,33 @@ class Creature:
 
         if not self.home:
             keys = pygame.key.get_pressed()
+            flag_rotation = False
+            flag_animation = False
             if keys[pygame.K_LEFT]:
                 self.energy -= self.size  # TODO: based on size and other factors
                 self.angle_speed = -4
-                self.rotate()
-                self.rotate_parts()
+                flag_animation = True
+                flag_rotation = True
             if keys[pygame.K_RIGHT]:
                 self.energy -= self.size  # TODO: based on size and other factors
                 self.angle_speed = 4
-                self.rotate()
-                self.rotate_parts()
+                flag_animation = True
+                flag_rotation = True
             # If up or down is pressed, accelerate by
             # adding the acceleration to the velocity vector.
             if keys[pygame.K_UP]:
                 self.energy -= self.size  # TODO: based on size and other factors
                 self.vel += self.acceleration
+                flag_animation = True
             if keys[pygame.K_DOWN]:
                 self.energy -= self.size  # TODO: based on size and other factors
                 self.vel -= self.acceleration
+                flag_animation = True
+
+            if flag_animation:
+                self.animate_parts()
+            if flag_rotation:
+                self.rotate()
 
             self.position += self.vel
 
@@ -118,9 +135,9 @@ class Creature:
                 self.position.y = min(self.position.y, 750)
                 self.got_home()
 
-    def rotate_parts(self):
-        for part in self.parts:
-            part.determine_rotation()
+    def animate_parts(self):
+        for part in self.animated_parts:
+            part.next_in_animation()
 
     def rotate(self):
         # Rotate the acceleration vector
@@ -130,6 +147,9 @@ class Creature:
             self.angle -= 360
         elif self.angle < 0:
             self.angle += 360
+
+        for part in self.dmg_parts:
+            part.determine_rotation()
 
     def hit(self):
         self.health -= 1

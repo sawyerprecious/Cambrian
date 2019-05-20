@@ -83,7 +83,7 @@ class Game:
         for c in self.creatures:
             if not getattr(c, "home"):
                 mouths.append(getattr(c, "parts")[0])
-                damage_parts = damage_parts + (getattr(c, "parts"))     # TODO: differentiate between kinds of parts
+                damage_parts = damage_parts + (getattr(c, "dmg_parts"))
 
         for c in self.creatures:
             for d in damage_parts:
@@ -126,6 +126,7 @@ class Game:
         for f in self.food_items:
             for mouth in mouths:
                 if mouth.check_collision(f[0], f[1]):
+                    mouth.next_in_animation()
                     to_remove_food.append(f)
 
                 else:

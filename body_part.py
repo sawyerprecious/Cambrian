@@ -1,6 +1,8 @@
 import math
 import pygame
 import os
+import random
+import copy
 
 
 class BodyPart:
@@ -12,6 +14,8 @@ class BodyPart:
         self.position = position
         self.owner = owner
         self.type = part_type
+        self.state = self.set_state()
+        self.name = self.set_name()
         self.determine_rotation()
 
     def check_collision(self, x, y):
@@ -27,12 +31,10 @@ class BodyPart:
         fpx = self.true_position()[0]
         fpy = self.true_position()[1]
 
-        fpdx = self.true_position_dmg()[0]
-        fpdy = self.true_position_dmg()[1]
+        if self.type is "mouth" and self.state > 1:
+            self.next_in_animation()
 
         win.blit(self.img, (int(fpx - self.img.get_width() / 2), int(fpy - self.img.get_height() / 2)))
-
-        pygame.draw.circle(win, (255, 0, 0), (int(fpdx), int(fpdy)), 2, 0)
 
     def true_position(self):
         op = getattr(self.owner, "position")
@@ -51,8 +53,48 @@ class BodyPart:
         return fpx, fpy
 
     def determine_rotation(self):
-        self.img = pygame.image.load(os.path.join("assets", self.type + ".png"))
-        self.img = pygame.transform.scale(self.img, (int(self.position) if self.type is "eye" or self.type is "mouth"
-                                                     else int(self.position / 2),
-                                                     int(self.position)))
+        self.img = pygame.image.load(os.path.join("assets", self.name + ".png"))
+        size = (1, 1)
+        if self.type is "eye":
+            size = (int(self.position * 3), int(self.position * 3))
+        elif self.type is "mouth":
+            size = (int(self.position), int(self.position))
+        elif self.type is "spike":
+            size = (int(self.position / 2), int(self.position))
+        elif self.type is "flagella":
+            size = (int(self.position / 2), int(self.position))
+        else:
+            size = (int(self.position), int(self.position))
+
+        self.img = pygame.transform.scale(self.img, size)
         self.img = pygame.transform.rotate(self.img, 360 - getattr(self.owner, "angle") - self.angle)
+
+    def set_state(self):
+        if self.type is "flagella":
+            return random.randint(1, 14)
+        else:
+            return 1
+
+    def set_name(self):
+        if self.type is "mouth" or self.type is "flagella":
+            return self.type + str(self.state)
+        else:
+            return self.type
+
+    def next_in_animation(self):
+        if self.type is "flagella":
+            self.state += .23
+            if self.state > 14.48:
+                self.state = 1
+            former_name = copy.deepcopy(self.name)
+            self.name = "flagella" + str(int(self.state))
+            if former_name != self.name:
+                self.determine_rotation()
+        elif self.type is "mouth":
+            self.state += .1
+            if self.state > 2:
+                self.state = 1
+            former_name = copy.deepcopy(self.name)
+            self.name = "mouth" + str(1 if self.state is 1 else 2)
+            if former_name != self.name:
+                self.determine_rotation()
