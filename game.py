@@ -116,6 +116,7 @@ class Game:
                                             int(getattr(c, "position")[1] + r2 - 12.5)))
 
             if not to_remove_creatures.__contains__(c):
+                getattr(c, "brain").get_closest_things(self.creatures, self.food_items)
                 c.draw(self.win)
                 setattr(c, "dmg", False)
 

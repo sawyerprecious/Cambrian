@@ -2,6 +2,7 @@ import pygame
 import math
 import body_part
 import os
+import brain
 
 vec = pygame.math.Vector2
 
@@ -33,6 +34,8 @@ class Creature:
         self.dmg_parts = []
         self.setup_parts()
 
+        self.brain = brain.Brain(self)
+
     def setup_parts(self):
         # TODO: use the genome to determine this
         mouth = body_part.BodyPart(0, self.size / 1.5, self.size, self, "mouth")
@@ -46,7 +49,7 @@ class Creature:
         eye = body_part.BodyPart(0, 0, self.size / 3, self, "eye")
         self.parts.append(eye)
 
-        flag = body_part.BodyPart(180, 0, self.size * 2, self, "flagella")
+        flag = body_part.BodyPart(180, 0, self.size * 1.5, self, "flagella")
         self.parts.append(flag)
 
         for part in self.parts:
@@ -94,27 +97,32 @@ class Creature:
         # moves creature
 
         if not self.home:
-            keys = pygame.key.get_pressed()
+            # keys = pygame.key.get_pressed()
+            dec = self.brain.decide()
             flag_rotation = False
             flag_animation = False
-            if keys[pygame.K_LEFT]:
-                self.energy -= self.size  # TODO: based on size and other factors
+            # if keys[pygame.K_LEFT]:
+            if dec.__contains__(2):
+                self.energy -= self.size  # TODO: based on size, number of parts, and other factors
                 self.angle_speed = -4
                 flag_animation = True
                 flag_rotation = True
-            if keys[pygame.K_RIGHT]:
-                self.energy -= self.size  # TODO: based on size and other factors
+            # if keys[pygame.K_RIGHT]:
+            if dec.__contains__(4):
+                self.energy -= self.size  # TODO: based on size number of parts, and other factors
                 self.angle_speed = 4
                 flag_animation = True
                 flag_rotation = True
             # If up or down is pressed, accelerate by
             # adding the acceleration to the velocity vector.
-            if keys[pygame.K_UP]:
-                self.energy -= self.size  # TODO: based on size and other factors
+            # if keys[pygame.K_UP]:
+            if dec.__contains__(1):
+                self.energy -= self.size  # TODO: based on size number of parts, and other factors
                 self.vel += self.acceleration
                 flag_animation = True
-            if keys[pygame.K_DOWN]:
-                self.energy -= self.size  # TODO: based on size and other factors
+            # if keys[pygame.K_DOWN]:
+            if dec.__contains__(3):
+                self.energy -= self.size  # TODO: based on size number of parts, and other factors
                 self.vel -= self.acceleration
                 flag_animation = True
 
