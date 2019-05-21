@@ -3,11 +3,14 @@ import os
 import creature
 import random
 import math
+import pygame.freetype
 
 
 class Game:
 
     def __init__(self):
+
+        pygame.init()
 
         self.width = 1200
         self.height = 750
@@ -18,10 +21,13 @@ class Game:
         self.bg = pygame.image.load(os.path.join("assets", "background.png"))
         self.bg = pygame.transform.scale(self.bg, (self.width, self.height))
         self.create_food()
+        self.create_creatures()
 
     def run(self):
 
         run = True
+        pause = False
+        tick = 0
 
         clock = pygame.time.Clock()
 
@@ -34,29 +40,25 @@ class Game:
                     run = False
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    r = random.randint(0, 3895)
-                    r2 = random.randint(5, 25)
+                    if pygame.mouse.get_pos()[0] < 30 and pygame.mouse.get_pos()[1] < 30:
+                        pause = not pause
 
-                    if r <= 1198:
-                        pos = (r + 1, 0)
-                    elif r <= 1947:
-                        pos = (1199, r - 1198)
-                    elif r <= 3146:
-                        pos = (r - 1947, 749)
-                    elif r < 3896:
-                        pos = (0, r - 3146)
+            if not pause:
+                for c in self.creatures:
+                    c.draw(self.win)
 
-                    c = creature.Creature(pos, r2, None)
-                    self.creatures.append(c)
-
-            for c in self.creatures:
-                c.draw(self.win)
-
-            self.draw()
+                self.draw_game()
+                self.draw_pause_button(not pause)
+            else:
+                tick += 1
+                if tick > 60:
+                    tick = 0
+                self.draw_pause_menu()
+                self.draw_pause_button(tick > 30)
 
         pygame.quit()
 
-    def draw(self):
+    def draw_game(self):
 
         self.win.blit(self.bg, (0, 0))
 
@@ -135,13 +137,57 @@ class Game:
 
         self.food_items = [i for i in self.food_items if i not in to_remove_food]
 
+    def draw_pause_button(self, p):
+        self.win.blit(pygame.image.load(os.path.join("assets",
+                                                     "pause-button.png" if p else "play-button.png")), (5, 5))
         pygame.display.update()
+
+    def draw_pause_menu(self):
+        pygame.draw.rect(self.win, (255, 255, 255), pygame.rect.Rect(500, 300, 200, 30))
+        large_text = pygame.font.Font('freesansbold.ttf', 30)
+        text_surf, text_rect = large_text.render("Paused", True, (0, 0, 0)),\
+                               large_text.render("Paused", True, (0, 0, 0)).get_rect()
+        text_rect.center = (600, 315)
+        self.win.blit(text_surf, text_rect)
+
+        pygame.display.update()
+        # TODO: finish the actual menu; maybe stuff like quit, see stats, etc.
 
     def create_food(self):
         i = 0
 
         while i < 100:
             self.food_items.append((random.randint(50, 1150), random.randint(50, 700)))
+            i += 1
+
+    def create_creatures(self):
+        positions = []
+        i = 0
+
+        while i < 10:
+            r = random.randint(0, 3895)
+            r2 = random.randint(5, 25)
+
+            if r <= 1198:
+                pos = (r + 1, 0)
+            elif r <= 1947:
+                pos = (1199, r - 1198)
+            elif r <= 3146:
+                pos = (r - 1947, 749)
+            elif r < 3896:
+                pos = (0, r - 3146)
+
+            c = creature.Creature(pos, r2, None)
+            flag = False
+            for p in positions:
+                if r - 50 < p < r + 50:
+                    flag = True
+            if not flag:
+                positions.append(r)
+                self.creatures.append(c)
+            else:
+                i -= 1
+
             i += 1
 
 
