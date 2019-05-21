@@ -1,0 +1,1 @@
+I named this project after the Cambrian explosion.  I'm building "creatures" that have separate genomes that will be able to evolve using AI in an environment based on how much food they are able to eat before they run out of energy.  Hopefully I'll get something resembling a real ecosystem by the end of the simulation.
