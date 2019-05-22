@@ -40,8 +40,11 @@ class Game:
                     run = False
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if pygame.mouse.get_pos()[0] < 30 and pygame.mouse.get_pos()[1] < 30:
+                    pos = pygame.mouse.get_pos()
+                    if pos[0] < 30 and pos[1] < 30:
                         pause = not pause
+                    if pause and 350 < pos[1] < 380 and 550 < pos[0] < 650:
+                        run = False
 
             if not pause:
                 for c in self.creatures:
@@ -50,10 +53,12 @@ class Game:
                 self.draw_game()
                 self.draw_pause_button(not pause)
             else:
+                if tick is 0:
+                    self.draw_pause_menu_background()
                 tick += 1
                 if tick > 60:
-                    tick = 0
-                self.draw_pause_menu()
+                    tick = 1
+                self.draw_pause_menu_contents()
                 self.draw_pause_button(tick > 30)
 
         pygame.quit()
@@ -142,7 +147,13 @@ class Game:
                                                      "pause-button.png" if p else "play-button.png")), (5, 5))
         pygame.display.update()
 
-    def draw_pause_menu(self):
+    def draw_pause_menu_background(self):
+        s = pygame.Surface((300, 300))
+        s.set_alpha(90)
+        s.fill((0, 0, 0))
+        self.win.blit(s, (450, 225))
+
+    def draw_pause_menu_contents(self):
         pygame.draw.rect(self.win, (255, 255, 255), pygame.rect.Rect(500, 300, 200, 30))
         large_text = pygame.font.Font('freesansbold.ttf', 30)
         text_surf, text_rect = large_text.render("Paused", True, (0, 0, 0)),\
@@ -150,8 +161,15 @@ class Game:
         text_rect.center = (600, 315)
         self.win.blit(text_surf, text_rect)
 
+        pygame.draw.rect(self.win, (255, 255, 255), pygame.rect.Rect(550, 350, 100, 30))
+        large_text = pygame.font.Font('freesansbold.ttf', 30)
+        text_surf, text_rect = large_text.render("Quit", True, (255, 0, 0)), \
+                               large_text.render("Quit", True, (255, 0, 0)).get_rect()
+        text_rect.center = (600, 365)
+        self.win.blit(text_surf, text_rect)
+
         pygame.display.update()
-        # TODO: finish the actual menu; maybe stuff like quit, see stats, etc.
+        # TODO: finish the menu with species numbers, best species, fitness, etc.
 
     def create_food(self):
         i = 0
@@ -160,7 +178,7 @@ class Game:
             self.food_items.append((random.randint(50, 1150), random.randint(50, 700)))
             i += 1
 
-    def create_creatures(self):
+    def create_creatures(self):     # TODO: based on natural selection rather than randomness
         positions = []
         i = 0
 
