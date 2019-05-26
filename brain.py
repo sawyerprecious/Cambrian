@@ -23,8 +23,7 @@ class Brain:
         elif self.closest_food_angle > 190:
             to_return.append(4)
         else:
-            to_return.append(1)
-        to_return.append(0)     # TODO: replace with actual decision making
+            to_return.append(1)    # TODO: replace with actual decision making
         return to_return
 
     def get_closest_things(self, creatures, food):
