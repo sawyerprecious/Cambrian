@@ -83,7 +83,6 @@ class BodyPart:
             else:
                 print("rip.  No rotation allowed :(")
 
-
     def set_state(self):
         if self.type is "flagella":
             return random.randint(1, 14)

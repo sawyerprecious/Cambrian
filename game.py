@@ -15,7 +15,10 @@ class Game:
         self.lock = threading.Lock()
 
         pygame.init()
-
+        self.creatures = []
+        self.food_items = []
+        self.bubbles = []
+        self.bg = None
         self.gen_num = 0
         self.run_num = 0
         self.gene_pool = []
@@ -235,13 +238,25 @@ class Game:
 
             c.draw(self.win, False)
 
-            # TODO: show stats like fitness and number in species (future)
+            # TODO: show stats like number in species (future)
+
+            self.lock.acquire()
+
+            mid_text = pygame.font.Font('freesansbold.ttf', 13)
+            text_surf, text_rect = mid_text.render("Fitness: " + str(int(getattr(bflg, "fitness"))),
+                                                   True, (0, 0, 0)),\
+                                   mid_text.render("Fitness: " + str(int(getattr(bflg, "fitness"))),
+                                                   True, (0, 0, 0)).get_rect()
+            text_rect.center = (540, 450)
+            self.win.blit(text_surf, text_rect)
+
+            self.lock.release()
 
         self.lock.acquire()
-        large_text = pygame.font.Font('freesansbold.ttf', 18)
-        text_surf, text_rect = large_text.render("Gen# " + str(self.gen_num + 1) + ", Run# " + str(self.run_num),
+        mid_text = pygame.font.Font('freesansbold.ttf', 18)
+        text_surf, text_rect = mid_text.render("Gen# " + str(self.gen_num + 1) + ", Run# " + str(self.run_num),
                                                  True, (255, 255, 255)), \
-                               large_text.render("Gen# " + str(self.gen_num + 1) + ", Run# " + str(self.run_num),
+                               mid_text.render("Gen# " + str(self.gen_num + 1) + ", Run# " + str(self.run_num),
                                                  True, (255, 255, 255)).get_rect()
         text_rect.center = (520, 512)
         self.win.blit(text_surf, text_rect)
@@ -262,6 +277,7 @@ class Game:
 
         while i < 10:
             r = random.randint(0, 3895)
+            pos = 0
 
             if r <= 1198:
                 pos = (r + 1, 0)
