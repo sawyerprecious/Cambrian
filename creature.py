@@ -123,7 +123,7 @@ class Creature:
                 flag_animation = True
                 flag_rotation = True
             # if keys[pygame.K_RIGHT]:
-            if dec.__contains__(4):
+            if dec.__contains__(3):
                 self.energy -= self.size
                 self.angle_speed = 3
                 flag_animation = True
@@ -136,7 +136,7 @@ class Creature:
                 self.vel += self.acceleration
                 flag_animation = True
             # if keys[pygame.K_DOWN]:
-            if dec.__contains__(3):
+            if dec.__contains__(4):
                 self.energy -= self.size ** 2 + len(self.animated_parts) * 4
                 self.vel -= self.acceleration
                 flag_animation = True
@@ -180,5 +180,5 @@ class Creature:
         self.genes.fitness = self.determine_fitness()
 
     def determine_fitness(self):
-        return self.food_collected + 2 * (self.energy / 250000) + self.health / self.size
+        return self.food_collected ** 2 + 2 * (self.energy / 250000) + self.health / self.size
 

@@ -1,11 +1,13 @@
 import random
 import body_node
+import brain_node
 
 
 class Genome:
 
     def __init__(self, genes, copy=False):
         self.fitness = 0
+        self.brain_nodes = {}
         # TODO: setup brain genes
         if genes is None:
             self.body_nodes = {0: body_node.BodyNode("body",
@@ -14,11 +16,16 @@ class Genome:
                                                      random.randint(5, 25),
                                                      random.randint(1, 201),
                                                      0)}
+            self.brain_nodes = self.create_brain()
 
         elif copy:
             self.body_nodes = genes.body_nodes
+            self.brain_nodes = genes.brain_nodes
 
         else:
+            for i in range(0, len(genes.brain_nodes.values())):
+                self.brain_nodes[i] = genes.brain_nodes[i].mutate()
+
             new_nodes = {}
             angles = {0, 180}
             for i in (range(len(genes.body_nodes))):
@@ -102,7 +109,7 @@ class Genome:
                 if self.check_angles(new_mutation2.angle, angles):
                     new_nodes[len(genes.body_nodes) + 1] = new_mutation2
 
-        self.brain_nodes = {}
+        # self.brain_nodes = {}
         self.brain_connections = {}
 
     def check_angles(self, angle, existing_list):
@@ -111,3 +118,30 @@ class Genome:
             if 360 + (ang - 10) % 360 <= angle <= (ang + 10) % 360:
                 flag = False
         return flag
+
+    def create_brain(self):
+        outputs = []
+        mid = []
+        # output:
+        for i in range(0, 3):
+            new_node = brain_node.BrainNode("output", {}, 15 + i)
+            outputs.append(new_node)
+            self.brain_nodes[15 + i] = new_node
+        # middle layer:
+        for i in range(0, 6):
+            new_node = brain_node.BrainNode("middle", self.set_children(outputs), 9 + i)
+            mid.append(new_node)
+            self.brain_nodes[9 + i] = new_node
+        # input:
+        for i in range(0, 9):
+            new_node = brain_node.BrainNode("input", self.set_children(mid), i)
+            self.brain_nodes[i] = new_node
+        return self.brain_nodes
+
+    def set_children(self, children):
+        to_return = {}
+        i = 0
+        for child in children:
+            to_return[i] = [random.randint(0, 200) / 100 - 1, child]
+            i += 1
+        return to_return

@@ -17,7 +17,7 @@ class BodyPart:
         self.type = part_type
         self.state = self.set_state()
         self.name = self.set_name()
-        self.determine_rotation(False)
+        self.determine_rotation(True)
 
     def check_collision(self, x, y):
         fpx = self.true_position_dmg()[0]
