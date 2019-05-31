@@ -180,5 +180,9 @@ class Creature:
         self.genes.fitness = self.determine_fitness()
 
     def determine_fitness(self):
-        return self.food_collected ** 2 + 2 * (self.energy / 250000) + self.health / self.size
+        if self.food_collected is 0:
+            fit = 0
+        else:
+            fit = self.food_collected ** 2 + 2 * (self.energy / 250000) + self.health / self.size
+        return fit
 

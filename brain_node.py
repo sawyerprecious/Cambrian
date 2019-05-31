@@ -20,8 +20,7 @@ class BrainNode:
             r2 = random.randint(0, len(self.outgoing.values()) - 1)
             cweight = self.outgoing[r2][0]
             if r < 5:
-                if len(self.outgoing.values()) > 0:
-                    self.outgoing[r2][0] = random.randint(0, 200) / 100 - 1
+                self.outgoing[r2][0] = random.randint(0, 200) / 100 - 1
             else:
                 self.outgoing[r2][0] = max(-1, min(1, cweight + random.randint(0, 20) / 100 - 0.1))
         return self

@@ -7,6 +7,7 @@ import pygame.freetype
 import operator
 import threading
 import copy
+import genome
 
 
 class Game:
@@ -28,6 +29,7 @@ class Game:
         self.select_creatures()
         self.set_up_gen()
         self.best_from_last_gen = None
+        self.species = {}
 
     def set_up_gen(self):
         self.creatures = []
@@ -178,6 +180,7 @@ class Game:
         else:
             self.gen_num += 1
             self.run_num = 0
+            self.categorize_species()
             self.select_creatures()
 
     def draw_pause_button(self, p):
@@ -238,8 +241,6 @@ class Game:
 
             c.draw(self.win, False)
 
-            # TODO: show stats like number in species (future)
-
             self.lock.acquire()
 
             mid_text = pygame.font.Font('freesansbold.ttf', 13)
@@ -248,6 +249,20 @@ class Game:
                                    mid_text.render("Fitness: " + str(int(getattr(bflg, "fitness"))),
                                                    True, (0, 0, 0)).get_rect()
             text_rect.center = (540, 450)
+            self.win.blit(text_surf, text_rect)
+
+            i = 0
+            for s in self.species.values():
+                for v in s:
+                    if v.fitness == bflg.fitness:
+                        n = i
+                i += 1
+
+            text_surf, text_rect = mid_text.render("Species: " + str(n),
+                                                   True, (0, 0, 0)), \
+                                   mid_text.render("Species: " + str(n),
+                                                   True, (0, 0, 0)).get_rect()
+            text_rect.center = (540, 470)
             self.win.blit(text_surf, text_rect)
 
             self.lock.release()
@@ -260,12 +275,21 @@ class Game:
                                                  True, (255, 255, 255)).get_rect()
         text_rect.center = (520, 512)
         self.win.blit(text_surf, text_rect)
+
+        text_surf, text_rect = mid_text.render("# Species: " +
+                                               str(100 if len(self.species) is 0 else len(self.species)),
+                                               True, (255, 255, 255)), \
+                               mid_text.render("# Species: " +
+                                               str(100 if len(self.species) is 0 else len(self.species)),
+                                               True, (255, 255, 255)).get_rect()
+        text_rect.center = (680, 512)
+        self.win.blit(text_surf, text_rect)
         self.lock.release()
 
     def create_food(self):
         i = 0
 
-        while i < 100:
+        while i < min(100, 25 + self.gen_num):
             self.food_items.append((random.randint(50, 1150), random.randint(50, 700)))
             i += 1
 
@@ -313,7 +337,10 @@ class Game:
             for gene in self.gene_pool:
                 total_fitness += gene.fitness
             new_pool = []
-            for i in range(100):
+            new_pool.append(self.gene_pool[0])
+            new_pool.append(self.gene_pool[1])
+            new_pool.append(self.gene_pool[2])
+            for i in range(94):
                 flag = True
                 r = random.randint(0, int(total_fitness))
                 k = 0
@@ -327,10 +354,37 @@ class Game:
                         tsf += self.gene_pool[k].fitness
                         k += 1
 
+            new_pool.append(genome.Genome(None))
+            new_pool.append(genome.Genome(None))
+            new_pool.append(genome.Genome(None))
+
             self.gene_pool = new_pool
         else:
             for i in range(100):
                 self.gene_pool.append(None)
+
+    def categorize_species(self):
+        self.species = {}
+
+        for genome in self.gene_pool:
+            found_species = False
+            for species in self.species:
+                if genome.genetic_distance(species) < 2:    # 10
+                    self.species[species].append(genome)
+                    found_species = True
+                    break
+
+            if not found_species:
+                new_species = []
+                new_species.append(genome)
+                self.species[genome] = new_species
+
+        for genome in self.gene_pool:
+            num_related = 1
+            for species_list in self.species.values():
+                if species_list.__contains__(genome):
+                    num_related = len(species_list)
+            genome.fitness = max(genome.fitness / num_related, 1) if genome.fitness is not 0 else 0
 
 
 g = Game()

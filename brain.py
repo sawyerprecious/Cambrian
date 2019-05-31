@@ -57,7 +57,7 @@ class Brain:
         self.closest_wall_angle = math.degrees(math.atan2(self.creature.position.y - cw[1],
                                                           self.creature.position.x - cw[0])) + 90
 
-        closest_food = 5000
+        closest_food = 1416
         cf = (0, 0)
         for f in food:
             hyp = math.hypot(f[0] - self.creature.position.x, f[1] - self.creature.position.y)
@@ -74,13 +74,14 @@ class Brain:
         self.closest_food_angle = (cf_angle - self.creature.angle) % 360 if cf_angle >= 0\
             else (360 + cf_angle - self.creature.angle) % 360
 
-        closest_creature = 5000
+        closest_creature = 1416
         cc_angle = 0
         for c in creatures:
-            closest_creature = min(closest_creature, math.hypot(getattr(c, "position").x - self.creature.position.x,
-                                                                getattr(c, "position").y - self.creature.position.y))
-            cc_angle = math.degrees(math.atan2(self.creature.position.y - getattr(c, "position").y,
-                                               self.creature.position.x - getattr(c, "position").x)) + 90
+            if not c.home:
+                closest_creature = min(closest_creature, math.hypot(getattr(c, "position").x - self.creature.position.x,
+                                                                    getattr(c, "position").y - self.creature.position.y))
+                cc_angle = math.degrees(math.atan2(self.creature.position.y - getattr(c, "position").y,
+                                                   self.creature.position.x - getattr(c, "position").x)) + 90
         self.closest_creature_dist = closest_creature
         self.closest_creature_angle = (cc_angle - self.creature.angle) % 360 if cc_angle >= 0\
             else (360 + cf_angle - self.creature.angle) % 360

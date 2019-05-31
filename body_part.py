@@ -82,6 +82,7 @@ class BodyPart:
                 self.lock.release()
             else:
                 print("rip.  No rotation allowed :(")
+                self.owner.energy = 0
 
     def set_state(self):
         if self.type is "flagella":

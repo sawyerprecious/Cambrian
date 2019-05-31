@@ -8,7 +8,6 @@ class Genome:
     def __init__(self, genes, copy=False):
         self.fitness = 0
         self.brain_nodes = {}
-        # TODO: setup brain genes
         if genes is None:
             self.body_nodes = {0: body_node.BodyNode("body",
                                                      random.randint(1, 201),
@@ -109,8 +108,8 @@ class Genome:
                 if self.check_angles(new_mutation2.angle, angles):
                     new_nodes[len(genes.body_nodes) + 1] = new_mutation2
 
-        # self.brain_nodes = {}
-        self.brain_connections = {}
+            while len(self.body_nodes) > 7:
+                self.body_nodes.pop(len(self.body_nodes) - 1)
 
     def check_angles(self, angle, existing_list):
         flag = True
@@ -145,3 +144,44 @@ class Genome:
             to_return[i] = [random.randint(0, 200) / 100 - 1, child]
             i += 1
         return to_return
+
+    def genetic_distance(self, other_genome):
+        difference_num_eyes = 0
+        difference_num_spikes = 0
+        difference_num_flag = 0
+        difference_body = 0
+        for node in self.body_nodes.values():
+            if node.part_type is "eye":
+                difference_num_eyes += 1
+            elif node.part_type is "spike":
+                difference_num_spikes += 1
+            elif node.part_type is "flagella":
+                difference_num_flag += 1
+            elif node.part_type is "body":
+                difference_body += node.size / 5
+
+        for node in other_genome.body_nodes.values():
+            if node.part_type is "eye":
+                difference_num_eyes -= 1
+            elif node.part_type is "spike":
+                difference_num_spikes -= 1
+            elif node.part_type is "flagella":
+                difference_num_flag -= 1
+            elif node.part_type is "body":
+                difference_body -= node.size / 5
+
+        difference_num_flag = abs(difference_num_flag)
+        difference_num_spikes = abs(difference_num_spikes)
+        difference_num_eyes = abs(difference_num_eyes)
+        difference_body = abs(difference_body)
+
+        body_dist = difference_num_flag + difference_num_spikes + difference_num_eyes + difference_body
+
+        difference_weight = 0
+
+        for i in range(len(self.brain_nodes)):
+            for j in range(len(self.brain_nodes[i].outgoing)):
+                difference_weight += abs(self.brain_nodes[i].outgoing[j][0]
+                                         - other_genome.brain_nodes[i].outgoing[j][0])
+
+        return body_dist + difference_weight / 10

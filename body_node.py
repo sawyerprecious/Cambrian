@@ -26,13 +26,13 @@ class BodyNode:
                 self.angle = random.randint(0, 359)
 
             if r3 < 80:
-                self.position = (max(1 if self.part_type is "eye" else int(constraint / 8),
+                self.position = (max(3 if self.part_type is "eye" else int(constraint / 8),
                                      min(constraint, pos)))
             elif r3 < 90:
-                self.position = max(1 if self.part_type is "eye" else int(constraint / 8),
+                self.position = max(3 if self.part_type is "eye" else int(constraint / 8),
                                     min(constraint, pos + (90 - r3) - (5 if r3 < 85 else 4)))
             else:
-                self.position = random.randint(1 if self.part_type is "eye" else int(constraint / 8),
+                self.position = random.randint(3 if self.part_type is "eye" else int(constraint / 8),
                                                constraint)
 
             if r4 < 80:
